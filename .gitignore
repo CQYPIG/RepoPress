@@ -224,3 +224,4 @@ __marimo__/
 server/data/
 server/static/
 deploy.sh
+.idea/*
