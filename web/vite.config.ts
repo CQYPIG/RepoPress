@@ -11,13 +11,13 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../server/static',
+    outDir: '/home/nginx/html/repopress',
     emptyOutDir: true,
   },
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8099',
         changeOrigin: true,
       },
     },
