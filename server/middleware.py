@@ -132,6 +132,7 @@ class JWTAuthMiddleware:
 
         payload = await _verify_jwt(request)
         if payload is None and path.startswith("/api/"):
+            print("payload is None and path.startswith('/api/;')")
             response = JSONResponse(
                 status_code=401,
                 content={"detail": "Not authenticated"},
