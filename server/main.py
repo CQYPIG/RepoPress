@@ -82,6 +82,7 @@ async def _create_default_superuser():
                     display_name="Administrator",
                     password="admin123",
                     role="editor",
+                    is_superuser=True,
                 )
             )
             logger.info("Created default superuser: admin / admin123")

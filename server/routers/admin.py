@@ -26,7 +26,7 @@ from services import (
     update_repo,
     update_user,
 )
-from routers.auth import get_current_user, require_editor
+from routers.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -37,9 +37,9 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 @router.post("/repos", response_model=RepoConfigResponse, status_code=status.HTTP_201_CREATED)
 async def create_repo_endpoint(
     body: RepoConfigCreate,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
-    """Create a new repository configuration (editor only)."""
+    """Create a new repository configuration (admin only)."""
     repo = await create_repo(body)
     return RepoConfigResponse.model_validate(repo)
 
@@ -57,7 +57,7 @@ async def list_repos_endpoint(
 async def update_repo_endpoint(
     repo_id: UUID,
     body: RepoConfigUpdate,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
     """Update a repository configuration."""
     repo = await update_repo(repo_id, body)
@@ -72,7 +72,7 @@ async def update_repo_endpoint(
 @router.delete("/repos/{repo_id}")
 async def delete_repo_endpoint(
     repo_id: UUID,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
     """Delete a repository configuration."""
     deleted = await delete_repo(repo_id)
@@ -89,9 +89,9 @@ async def delete_repo_endpoint(
 
 @router.get("/users", response_model=list[UserResponse])
 async def list_users_endpoint(
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
-    """List all users (editor only)."""
+    """List all users (admin only)."""
     users = await list_users()
     return [UserResponse.model_validate(u) for u in users]
 
@@ -99,9 +99,9 @@ async def list_users_endpoint(
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user_endpoint(
     body: UserCreate,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
-    """Create a new user (editor only)."""
+    """Create a new user (admin only)."""
     user = await create_user(body)
     return UserResponse.model_validate(user)
 
@@ -110,7 +110,7 @@ async def create_user_endpoint(
 async def update_user_endpoint(
     user_id: UUID,
     body: UserUpdate,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
     """Update a user."""
     user = await update_user(user_id, body)
@@ -128,9 +128,9 @@ async def update_user_endpoint(
 @router.put("/permissions")
 async def update_permissions_endpoint(
     body: PermissionsUpdateRequest,
-    _editor: UserResponse = Depends(require_editor),
+    _admin: UserResponse = Depends(require_admin),
 ):
-    """Update permissions (editor only)."""
+    """Update permissions (admin only)."""
     perms = await update_permissions(body.permissions)
     return {
         "message": f"Created {len(perms)} permission(s)",

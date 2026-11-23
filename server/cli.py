@@ -187,6 +187,7 @@ def cmd_createsuperuser(args: argparse.Namespace):
                     display_name=display_name,
                     password=password,
                     role="editor",
+                    is_superuser=True,
                 )
             )
             logger.info(

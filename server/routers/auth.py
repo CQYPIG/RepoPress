@@ -53,9 +53,19 @@ async def get_current_user(
     return UserResponse.model_validate(user)
 
 
+async def require_admin(user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    """Dependency that ensures the current user is an administrator."""
+    if not user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return user
+
+
 async def require_editor(user: UserResponse = Depends(get_current_user)) -> UserResponse:
-    """Dependency that ensures the current user has the editor role."""
-    if user.role != "editor":
+    """Dependency that ensures the current user can edit documentation."""
+    if user.role != "editor" and not user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Editor access required",

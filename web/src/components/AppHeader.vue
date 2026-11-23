@@ -13,10 +13,10 @@ const repo = useRepoStore()
 const editor = useEditorStore()
 const ui = useUIStore()
 
-const homePath = computed(() => auth.isEditor ? '/editor' : '/view')
+const homePath = computed(() => (auth.isEditor || auth.isAdmin) ? '/editor' : '/view')
 
 const dropdownOptions = computed(() => {
-  if (auth.isEditor) {
+  if (auth.isAdmin) {
     return [
       { label: 'User', key: '/user' },
       { label: 'Setting', key: '/setting' },
@@ -65,7 +65,7 @@ function handleLogout() {
       />
 
       <n-button
-        v-if="!readonly && auth.isEditor && editor.currentFile"
+        v-if="!readonly && (auth.isEditor || auth.isAdmin) && editor.currentFile"
         :disabled="!editor.isDirty"
         :type="editor.isDirty ? 'warning' : 'primary'"
         size="small"

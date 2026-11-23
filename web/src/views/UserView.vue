@@ -19,12 +19,14 @@ const form = ref<{
   display_name: string
   password: string
   role: 'editor' | 'viewer'
+  is_superuser: boolean
 }>({
   username: '',
   email: '',
   display_name: '',
   password: '',
   role: 'viewer',
+  is_superuser: false,
 })
 
 const columns: DataTableColumns<User> = [
@@ -38,6 +40,16 @@ const columns: DataTableColumns<User> = [
         type: row.role === 'editor' ? 'error' : 'info',
         size: 'small',
       }, { default: () => row.role === 'editor' ? 'Editor' : 'Viewer' })
+    },
+  },
+  {
+    title: 'Admin',
+    key: 'is_superuser',
+    width: 80,
+    render(row) {
+      return row.is_superuser
+        ? h(NTag, { type: 'warning', size: 'small' }, { default: () => 'Admin' })
+        : h('span', { class: 'text-gray-400' }, '—')
     },
   },
   {
@@ -78,7 +90,7 @@ async function fetchUsers() {
 
 function openCreate() {
   editingUser.value = null
-  form.value = { username: '', email: '', display_name: '', password: '', role: 'viewer' }
+  form.value = { username: '', email: '', display_name: '', password: '', role: 'viewer', is_superuser: false }
   showModal.value = true
 }
 
@@ -90,6 +102,7 @@ function editUser(row: User) {
     display_name: row.display_name,
     password: '',
     role: row.role,
+    is_superuser: row.is_superuser,
   }
   showModal.value = true
 }
@@ -104,6 +117,7 @@ async function saveUser() {
       await api.admin.updateUser(editingUser.value.id, {
         ...(form.value.password ? { password: form.value.password } : {}),
         role: form.value.role,
+        is_superuser: form.value.is_superuser,
       })
       message.success('User updated')
     } else {
@@ -113,6 +127,7 @@ async function saveUser() {
         display_name: form.value.display_name || form.value.username,
         password: form.value.password,
         role: form.value.role,
+        is_superuser: form.value.is_superuser,
       })
       message.success('User created')
     }
@@ -158,6 +173,9 @@ async function saveUser() {
               { label: '查看者', value: 'viewer' },
             ]"
           />
+        </n-form-item>
+        <n-form-item label="管理员">
+          <n-switch v-model:value="form.is_superuser" />
         </n-form-item>
       </n-form>
       <template #footer>

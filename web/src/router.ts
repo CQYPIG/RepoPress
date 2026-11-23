@@ -38,13 +38,13 @@ const router = createRouter({
       path: '/user',
       name: 'user',
       component: () => import('./views/UserView.vue'),
-      meta: { auth: true, editor: true },
+      meta: { auth: true, admin: true },
     },
     {
       path: '/setting',
       name: 'setting',
       component: () => import('./views/SettingView.vue'),
-      meta: { auth: true, editor: true },
+      meta: { auth: true, admin: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -68,13 +68,16 @@ router.beforeEach(async (to, _from, next) => {
         return next('/login')
       }
     }
-    if (to.meta.editor && !authStore.isEditor) {
+    if (to.meta.editor && !(authStore.isEditor || authStore.isAdmin)) {
       return next('/view')
+    }
+    if (to.meta.admin && !authStore.isAdmin) {
+      return next(authStore.isEditor ? '/editor' : '/view')
     }
   }
 
   if (to.meta.guest && authStore.token) {
-    return next(authStore.isEditor ? '/editor' : '/view')
+    return next((authStore.isEditor || authStore.isAdmin) ? '/editor' : '/view')
   }
 
   next()
