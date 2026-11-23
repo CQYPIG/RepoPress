@@ -17,7 +17,7 @@ async function handleLogin() {
   error.value = ''
   try {
     await auth.login(username.value, password.value)
-    router.push('/editor')
+    router.push(auth.isEditor ? '/editor' : '/view')
   } catch (e: any) {
     error.value = e?.data?.detail || e?.message || 'Login failed'
   } finally {

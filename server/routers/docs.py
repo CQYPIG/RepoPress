@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from routers.auth import get_current_user
+from routers.auth import get_current_user, require_editor
 from schemas import (
     DeleteResponse,
     FileContentResponse,
@@ -67,7 +67,7 @@ async def get_file(
 @router.post("/save")
 async def save_file(
     body: SaveFileRequest,
-    _user: UserResponse = Depends(get_current_user),
+    _user: UserResponse = Depends(require_editor),
 ):
     """Save (create or update) a file."""
     try:
@@ -92,7 +92,7 @@ async def delete_file(
     path: str,
     repo_id: UUID = Query(..., description="Repository ID"),
     message: str = Query(None, description="Commit message"),
-    _user: UserResponse = Depends(get_current_user),
+    _user: UserResponse = Depends(require_editor),
 ):
     """Delete a file."""
     try:
@@ -110,7 +110,7 @@ async def delete_file(
 @router.post("/rename")
 async def rename_file(
     body: RenameFileRequest,
-    _user: UserResponse = Depends(get_current_user),
+    _user: UserResponse = Depends(require_editor),
 ):
     """Rename a file."""
     try:

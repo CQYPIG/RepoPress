@@ -12,25 +12,31 @@ const users = ref<User[]>([])
 const loading = ref(false)
 const showModal = ref(false)
 const editingUser = ref<User | null>(null)
-const form = ref({
+const form = ref<{
+  username: string
+  email: string
+  display_name: string
+  password: string
+  role: 'editor' | 'viewer'
+}>({
   username: '',
   email: '',
   display_name: '',
   password: '',
-  is_superuser: false,
+  role: 'viewer',
 })
 
 const columns: DataTableColumns<User> = [
   { title: 'Username', key: 'username' },
   {
     title: 'Role',
-    key: 'is_superuser',
+    key: 'role',
     width: 100,
     render(row) {
       return h(NTag, {
-        type: row.is_superuser ? 'error' : 'info',
+        type: row.role === 'editor' ? 'error' : 'info',
         size: 'small',
-      }, { default: () => row.is_superuser ? 'Admin' : 'User' })
+      }, { default: () => row.role === 'editor' ? 'Editor' : 'Viewer' })
     },
   },
   {
@@ -71,7 +77,7 @@ async function fetchUsers() {
 
 function openCreate() {
   editingUser.value = null
-  form.value = { username: '', email: '', display_name: '', password: '', is_superuser: false }
+  form.value = { username: '', email: '', display_name: '', password: '', role: 'viewer' }
   showModal.value = true
 }
 
@@ -82,17 +88,21 @@ function editUser(row: User) {
     email: row.email,
     display_name: row.display_name,
     password: '',
-    is_superuser: row.is_superuser,
+    role: row.role,
   }
   showModal.value = true
 }
 
 async function saveUser() {
+  if (!form.value.role) {
+    message.warning('请选择权限')
+    return
+  }
   try {
     if (editingUser.value) {
       await api.admin.updateUser(editingUser.value.id, {
         ...(form.value.password ? { password: form.value.password } : {}),
-        is_superuser: form.value.is_superuser,
+        role: form.value.role,
       })
       message.success('User updated')
     } else {
@@ -101,7 +111,7 @@ async function saveUser() {
         email: `${form.value.username}@repopress.local`,
         display_name: form.value.username,
         password: form.value.password,
-        is_superuser: form.value.is_superuser,
+        role: form.value.role,
       })
       message.success('User created')
     }
@@ -130,8 +140,14 @@ async function saveUser() {
         <n-form-item label="Password">
           <n-input v-model:value="form.password" type="password" :placeholder="editingUser ? 'Leave blank to keep current' : 'Password'" />
         </n-form-item>
-        <n-form-item label="Admin">
-          <n-switch v-model:value="form.is_superuser" />
+        <n-form-item label="权限" required>
+          <n-select
+            v-model:value="form.role"
+            :options="[
+              { label: '编辑者', value: 'editor' },
+              { label: '查看者', value: 'viewer' },
+            ]"
+          />
         </n-form-item>
       </n-form>
       <template #footer>

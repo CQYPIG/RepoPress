@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -29,7 +29,7 @@ class UserCreate(BaseModel):
     email: str = Field(..., max_length=128)
     display_name: str = Field(..., max_length=128)
     password: str = Field(..., min_length=6)
-    is_superuser: bool = False
+    role: Literal["editor", "viewer"] = "viewer"
 
 
 class UserUpdate(BaseModel):
@@ -37,7 +37,7 @@ class UserUpdate(BaseModel):
     display_name: Optional[str] = Field(None, max_length=128)
     password: Optional[str] = Field(None, min_length=6)
     is_active: Optional[bool] = None
-    is_superuser: Optional[bool] = None
+    role: Optional[Literal["editor", "viewer"]] = None
 
 
 class UserResponse(BaseModel):
@@ -46,7 +46,7 @@ class UserResponse(BaseModel):
     email: str
     display_name: str
     is_active: bool
-    is_superuser: bool
+    role: str
     created_at: datetime
     updated_at: datetime
 

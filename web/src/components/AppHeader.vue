@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore, useRepoStore, useEditorStore, useUIStore } from '../stores.js'
 
+defineProps<{ readonly?: boolean }>()
+
 const emit = defineEmits<{ save: [] }>()
 
 const router = useRouter()
@@ -11,8 +13,10 @@ const repo = useRepoStore()
 const editor = useEditorStore()
 const ui = useUIStore()
 
+const homePath = computed(() => auth.isEditor ? '/editor' : '/view')
+
 const dropdownOptions = computed(() => {
-  if (auth.isAdmin) {
+  if (auth.isEditor) {
     return [
       { label: 'User', key: '/user' },
       { label: 'Setting', key: '/setting' },
@@ -49,7 +53,7 @@ function handleLogout() {
           <span class="text-lg">☰</span>
         </template>
       </n-button>
-      <span class="text-lg font-bold cursor-pointer" @click="goTo('/editor')">RepoPress</span>
+      <span class="text-lg font-bold cursor-pointer" @click="goTo(homePath)">RepoPress</span>
 
       <n-select
         v-if="repo.repos.length > 0"
@@ -61,7 +65,7 @@ function handleLogout() {
       />
 
       <n-button
-        v-if="editor.currentFile"
+        v-if="!readonly && auth.isEditor && editor.currentFile"
         :disabled="!editor.isDirty"
         :type="editor.isDirty ? 'warning' : 'primary'"
         size="small"

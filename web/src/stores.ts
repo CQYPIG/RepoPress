@@ -8,7 +8,7 @@ export interface User {
   username: string
   email: string
   display_name: string
-  is_superuser: boolean
+  role: 'editor' | 'viewer'
   is_active: boolean
 }
 
@@ -36,7 +36,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
 
   const isAuthenticated = computed(() => !!token.value)
-  const isAdmin = computed(() => user.value?.is_superuser ?? false)
+  const isEditor = computed(() => user.value?.role === 'editor')
+  const isViewer = computed(() => user.value?.role === 'viewer')
 
   function setToken(t: string) {
     token.value = t
@@ -59,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { token, user, isAuthenticated, isAdmin, login, fetchUser, logout, setToken }
+  return { token, user, isAuthenticated, isEditor, isViewer, login, fetchUser, logout, setToken }
 })
 
 export const useEditorStore = defineStore('editor', () => {

@@ -40,11 +40,26 @@ async def _init_db():
     await Tortoise.generate_schemas()
 
 
+async def _migrate_user_role():
+    """Add the users.role column to pre-existing databases and backfill it."""
+    conn = Tortoise.get_connection("default")
+    rows = await conn.execute_query_dict("PRAGMA table_info(users)")
+    if any(row["name"] == "role" for row in rows):
+        return
+    await conn.execute_query(
+        "ALTER TABLE users ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'viewer'"
+    )
+    await conn.execute_query(
+        "UPDATE users SET role = CASE WHEN is_superuser = 1 THEN 'editor' ELSE 'viewer' END"
+    )
+    logger.info("Migrated users table: added role column")
+
+
 async def _create_default_roles():
-    """Ensure default roles (admin/editor/viewer) exist."""
+    """Ensure default roles (editor/viewer) exist."""
     from models import Role
 
-    for role_name in ("admin", "editor", "viewer"):
+    for role_name in ("editor", "viewer"):
         exists = await Role.filter(name=role_name).first()
         if not exists:
             await Role.create(name=role_name, is_system=True)
@@ -66,7 +81,7 @@ async def _create_default_superuser():
                     email="admin@repopress.local",
                     display_name="Administrator",
                     password="admin123",
-                    is_superuser=True,
+                    role="editor",
                 )
             )
             logger.info("Created default superuser: admin / admin123")
@@ -80,6 +95,7 @@ async def lifespan(app: FastAPI):
     # Startup
     _ensure_data_dirs()
     await _init_db()
+    await _migrate_user_role()
     await _create_default_roles()
     await _create_default_superuser()
     logger.info("RepoPress server started")

@@ -58,7 +58,7 @@ async def create_user(user_data: UserCreate) -> User:
         email=user_data.email,
         display_name=user_data.display_name,
         hashed_password=hashed,
-        is_superuser=user_data.is_superuser,
+        role=user_data.role,
     )
     return user
 

@@ -66,7 +66,7 @@ export interface UserCreateRequest {
   email: string
   display_name: string
   password: string
-  is_superuser?: boolean
+  role?: 'editor' | 'viewer'
 }
 
 export interface UserUpdateRequest {
@@ -74,7 +74,7 @@ export interface UserUpdateRequest {
   display_name?: string
   password?: string
   is_active?: boolean
-  is_superuser?: boolean
+  role?: 'editor' | 'viewer'
 }
 
 export interface PermissionRequest {

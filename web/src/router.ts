@@ -14,25 +14,37 @@ const router = createRouter({
       path: '/editor/:repoId([a-zA-Z0-9-]+)?',
       name: 'editor',
       component: () => import('./views/Editor.vue'),
-      meta: { auth: true },
+      meta: { auth: true, editor: true },
     },
     {
       path: '/editor/:repoId([a-zA-Z0-9-]+)/:path(.*)',
       name: 'editor-file',
       component: () => import('./views/Editor.vue'),
+      meta: { auth: true, editor: true },
+    },
+    {
+      path: '/view/:repoId([a-zA-Z0-9-]+)?',
+      name: 'view',
+      component: () => import('./views/View.vue'),
+      meta: { auth: true },
+    },
+    {
+      path: '/view/:repoId([a-zA-Z0-9-]+)/:path(.*)',
+      name: 'view-file',
+      component: () => import('./views/View.vue'),
       meta: { auth: true },
     },
     {
       path: '/user',
       name: 'user',
       component: () => import('./views/UserView.vue'),
-      meta: { auth: true, admin: true },
+      meta: { auth: true, editor: true },
     },
     {
       path: '/setting',
       name: 'setting',
       component: () => import('./views/SettingView.vue'),
-      meta: { auth: true, admin: true },
+      meta: { auth: true, editor: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -56,13 +68,13 @@ router.beforeEach(async (to, _from, next) => {
         return next('/login')
       }
     }
-    if (to.meta.admin && !authStore.isAdmin) {
-      return next('/editor')
+    if (to.meta.editor && !authStore.isEditor) {
+      return next('/view')
     }
   }
 
   if (to.meta.guest && authStore.token) {
-    return next('/editor')
+    return next(authStore.isEditor ? '/editor' : '/view')
   }
 
   next()

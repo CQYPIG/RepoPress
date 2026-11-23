@@ -4,6 +4,8 @@ import { useRepoStore, useEditorStore, type TreeItem } from '../stores.js'
 import { useFileTree } from '../composables.js'
 import FileTree from './FileTree.vue'
 
+defineProps<{ readonly?: boolean }>()
+
 const repo = useRepoStore()
 const editor = useEditorStore()
 const { createFile, deleteItem } = useFileTree()
@@ -83,7 +85,10 @@ const canDelete = computed(() =>
   <div class="sidebar flex flex-col">
     <div class="flex items-center justify-between px-3 py-2.5 border-b border-gray-100 dark:border-gray-800">
       <span class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Files</span>
-      <div class="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div
+        v-if="!readonly"
+        class="flex items-center rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden"
+      >
         <button
           class="w-8 h-7 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150"
           title="New file"

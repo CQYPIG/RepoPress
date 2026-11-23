@@ -53,6 +53,16 @@ async def get_current_user(
     return UserResponse.model_validate(user)
 
 
+async def require_editor(user: UserResponse = Depends(get_current_user)) -> UserResponse:
+    """Dependency that ensures the current user has the editor role."""
+    if user.role != "editor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Editor access required",
+        )
+    return user
+
+
 @router.post("/login", response_model=LoginResponse)
 async def login(body: LoginRequest):
     """Authenticate a user and return a JWT token."""

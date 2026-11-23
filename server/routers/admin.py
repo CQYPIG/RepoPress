@@ -26,19 +26,9 @@ from services import (
     update_repo,
     update_user,
 )
-from routers.auth import get_current_user
+from routers.auth import get_current_user, require_editor
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
-
-
-async def require_admin(user: UserResponse = Depends(get_current_user)) -> UserResponse:
-    """Dependency that ensures the current user is a superuser."""
-    if not user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return user
 
 
 # ─── Repo Management ───────────────────────────────────────────────────
@@ -47,9 +37,9 @@ async def require_admin(user: UserResponse = Depends(get_current_user)) -> UserR
 @router.post("/repos", response_model=RepoConfigResponse, status_code=status.HTTP_201_CREATED)
 async def create_repo_endpoint(
     body: RepoConfigCreate,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
-    """Create a new repository configuration (admin only)."""
+    """Create a new repository configuration (editor only)."""
     repo = await create_repo(body)
     return RepoConfigResponse.model_validate(repo)
 
@@ -67,7 +57,7 @@ async def list_repos_endpoint(
 async def update_repo_endpoint(
     repo_id: UUID,
     body: RepoConfigUpdate,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
     """Update a repository configuration."""
     repo = await update_repo(repo_id, body)
@@ -82,7 +72,7 @@ async def update_repo_endpoint(
 @router.delete("/repos/{repo_id}")
 async def delete_repo_endpoint(
     repo_id: UUID,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
     """Delete a repository configuration."""
     deleted = await delete_repo(repo_id)
@@ -99,9 +89,9 @@ async def delete_repo_endpoint(
 
 @router.get("/users", response_model=list[UserResponse])
 async def list_users_endpoint(
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
-    """List all users (admin only)."""
+    """List all users (editor only)."""
     users = await list_users()
     return [UserResponse.model_validate(u) for u in users]
 
@@ -109,9 +99,9 @@ async def list_users_endpoint(
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user_endpoint(
     body: UserCreate,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
-    """Create a new user (admin only)."""
+    """Create a new user (editor only)."""
     user = await create_user(body)
     return UserResponse.model_validate(user)
 
@@ -120,7 +110,7 @@ async def create_user_endpoint(
 async def update_user_endpoint(
     user_id: UUID,
     body: UserUpdate,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
     """Update a user."""
     user = await update_user(user_id, body)
@@ -138,9 +128,9 @@ async def update_user_endpoint(
 @router.put("/permissions")
 async def update_permissions_endpoint(
     body: PermissionsUpdateRequest,
-    _admin: UserResponse = Depends(require_admin),
+    _editor: UserResponse = Depends(require_editor),
 ):
-    """Update permissions (admin only)."""
+    """Update permissions (editor only)."""
     perms = await update_permissions(body.permissions)
     return {
         "message": f"Created {len(perms)} permission(s)",

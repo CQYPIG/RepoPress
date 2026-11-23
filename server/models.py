@@ -11,6 +11,7 @@ class User(Model):
     hashed_password = fields.CharField(max_length=256)
     is_active = fields.BooleanField(default=True)
     is_superuser = fields.BooleanField(default=False)
+    role = fields.CharField(max_length=16, default="viewer")
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     groups = fields.ManyToManyField("models.UserGroup", related_name="users")
