@@ -8,7 +8,6 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('./views/Login.vue'),
-      meta: { guest: true },
     },
     {
       path: '/editor/:repoId([a-zA-Z0-9-]+)?',
@@ -48,7 +47,7 @@ const router = createRouter({
     },
     {
       path: '/:pathMatch(.*)*',
-      redirect: '/editor',
+      redirect: '/login',
     },
   ],
 })
@@ -69,15 +68,13 @@ router.beforeEach(async (to, _from, next) => {
       }
     }
     if (to.meta.editor && !(authStore.isEditor || authStore.isAdmin)) {
-      return next('/view')
+      window.location.replace('/view')
+      return next(false)
     }
     if (to.meta.admin && !authStore.isAdmin) {
-      return next(authStore.isEditor ? '/editor' : '/view')
+      window.location.replace(authStore.isEditor ? '/editor' : '/view')
+      return next(false)
     }
-  }
-
-  if (to.meta.guest && authStore.token) {
-    return next((authStore.isEditor || authStore.isAdmin) ? '/editor' : '/view')
   }
 
   next()

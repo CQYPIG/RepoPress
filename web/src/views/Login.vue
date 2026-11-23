@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores.js'
 
-const router = useRouter()
 const auth = useAuthStore()
 
 const username = ref('')
@@ -17,7 +15,7 @@ async function handleLogin() {
   error.value = ''
   try {
     await auth.login(username.value, password.value)
-    router.push((auth.isEditor || auth.isAdmin) ? '/editor' : '/view')
+    window.location.replace((auth.isEditor || auth.isAdmin) ? '/editor' : '/view')
   } catch (e: any) {
     error.value = e?.data?.detail || e?.message || 'Login failed'
   } finally {
