@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
+    cookie_secure: bool = False  # set True when serving over HTTPS
     git_clone_dir: str = "data/repos"
     upload_dir: str = "data/uploads"
     max_upload_size: int = 10 * 1024 * 1024

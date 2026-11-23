@@ -119,6 +119,8 @@ class JWTAuthMiddleware:
         # Skip auth for login, docs/openapi, and static
         public_paths = [
             "/api/auth/login",
+            "/api/auth/logout",
+            "/api/auth/check-auth",
             "/api/health",
             "/docs",
             "/openapi.json",

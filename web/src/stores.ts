@@ -60,6 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     user.value = null
     localStorage.removeItem('token')
+    api.auth.logout().catch(() => {})
   }
 
   return { token, user, isAuthenticated, isEditor, isViewer, isAdmin, login, fetchUser, logout, setToken }
