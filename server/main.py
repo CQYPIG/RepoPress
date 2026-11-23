@@ -121,11 +121,12 @@ def create_app() -> FastAPI:
     setup_middleware(app)
 
     # Register routers
-    from routers.auth import router as auth_router
+    from routers.auth import router as auth_router, alias_router as auth_alias_router
     from routers.admin import router as admin_router
     from routers.docs import router as docs_router
 
     app.include_router(auth_router)
+    app.include_router(auth_alias_router)
     app.include_router(admin_router)
     app.include_router(docs_router)
 

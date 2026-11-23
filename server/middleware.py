@@ -32,19 +32,21 @@ def _is_rate_limited(ip: str) -> bool:
 
 
 async def _verify_jwt(request: Request) -> dict | None:
-    """Verify JWT token from Authorization header. Returns payload dict or None."""
+    """Verify JWT from the Authorization header or the auth cookie. Returns payload dict or None."""
+    token = None
     auth_header = request.headers.get("Authorization", "")
-    print(f"Authorization header: {auth_header}")
-    if not auth_header.startswith("Bearer "):
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+    if not token:
+        token = request.cookies.get("repopress_token")
+    if not token:
         return None
-    token = auth_header[7:]
     try:
         payload = jwt.decode(
             token,
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
-        print(f"payload: {payload}")
         return payload
     except JWTError:
         return None

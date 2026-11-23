@@ -169,3 +169,13 @@ async def get_user(user: UserResponse = Depends(get_current_user)):
 async def check_auth_status(user: UserResponse = Depends(check_auth)):
     """Auth endpoint for nginx `auth_request` (returns 200 when authenticated)."""
     return user
+
+
+# Alias so nginx `auth_request` configs that call `/api/check-auth` also work.
+alias_router = APIRouter(prefix="/api", tags=["auth"])
+
+
+@alias_router.get("/check-auth", response_model=UserResponse)
+async def check_auth_alias(user: UserResponse = Depends(check_auth)):
+    """Alias for `/api/auth/check-auth`."""
+    return user
