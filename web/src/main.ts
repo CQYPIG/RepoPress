@@ -3,10 +3,13 @@ import { createPinia } from 'pinia'
 import naive from 'naive-ui'
 import App from './App.vue'
 import router from './router'
+import { setupSecurity } from './utils/security'
 import 'katex/dist/katex.min.css'
 import '@unocss/reset/tailwind.css'
 import 'uno.css'
 import './styles/main.css'
+
+setupSecurity()
 
 const app = createApp(App)
 app.use(createPinia())
