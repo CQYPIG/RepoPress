@@ -4,7 +4,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from tortoise import Tortoise
 
@@ -113,6 +113,9 @@ def create_app() -> FastAPI:
         description="Backend API for RepoPress documentation management",
         version="0.1.0",
         lifespan=lifespan,
+        docs_url="/docs" if settings.debug else None,
+        redoc_url="/redoc" if settings.debug else None,
+        openapi_url="/openapi.json" if settings.debug else None,
     )
 
     # Setup middleware
@@ -133,6 +136,10 @@ def create_app() -> FastAPI:
     @app.get("/api/health")
     async def health_check():
         return {"status": "ok", "version": "0.1.0"}
+
+    @app.get("/robots.txt", include_in_schema=False)
+    async def robots_txt():
+        return PlainTextResponse("User-agent: *\nDisallow: /\n")
 
     # Serve built frontend in production
     static_dir = os.path.join(os.path.dirname(__file__), "static")

@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     upload_dir: str = "data/uploads"
     max_upload_size: int = 10 * 1024 * 1024
 
+    # Anti-scraping
+    block_bots: bool = True            # block search-engine crawlers + common scraper/script UAs
+    bot_user_agents: str = ""          # extra regex (comma separated); empty = built-in list
+    rate_limit_requests: int = 120     # max requests per IP per window
+    rate_limit_window: int = 60        # window in seconds
+
     model_config = {
         "env_prefix": "REPOPRESS_",
         "env_file": Path(__file__).parent / ".env",
