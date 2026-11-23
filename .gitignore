@@ -225,3 +225,5 @@ server/data/
 server/static/
 deploy.sh
 .idea/*
+
+*.md
