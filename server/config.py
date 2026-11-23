@@ -1,8 +1,9 @@
 from __future__ import annotations
-import os
-import secrets
+
 from pathlib import Path
 
+import os
+import secrets
 from pydantic_settings import BaseSettings
 
 JWT_SECRET_FILE = Path("data/.jwt_secret")
@@ -34,11 +35,14 @@ class Settings(BaseSettings):
     upload_dir: str = "data/uploads"
     max_upload_size: int = 10 * 1024 * 1024
 
-    model_config = {"env_prefix": "REPOPRESS_"}
+    model_config = {
+        "env_prefix": "REPOPRESS_",
+        "env_file": Path(__file__).parent / ".env",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if self.jwt_secret == "change-me-in-production":
+        if not self.jwt_secret or self.jwt_secret == "change-me-in-production":
             object.__setattr__(self, "jwt_secret", _resolve_jwt_secret())
 
 
