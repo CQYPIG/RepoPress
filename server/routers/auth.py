@@ -1,9 +1,9 @@
 from __future__ import annotations
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from schemas import (
-    ErrorResponse,
     LoginRequest,
     LoginResponse,
     UserResponse,
@@ -19,8 +19,26 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer(auto_error=False)
 
 
+async def check_auth(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    """Dependency to get the current authenticated user."""
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
+    payload = verify_token(credentials.credentials)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+        credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> UserResponse:
     """Dependency to get the current authenticated user."""
     if credentials is None:
@@ -104,3 +122,9 @@ async def logout():
 async def get_user(user: UserResponse = Depends(get_current_user)):
     """Get current authenticated user info."""
     return user
+
+
+@router.get("/check-auth", response_model=UserResponse)
+async def check_auth(user: UserResponse = Depends(check_auth)):
+    """Get current authenticated user info."""
+    return None
