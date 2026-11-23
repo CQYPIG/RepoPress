@@ -64,34 +64,65 @@ def _is_process_running(pid: int) -> bool:
 
 
 def cmd_start(args: argparse.Namespace):
-    """Start the RepoPress server."""
+    """Start the RepoPress server.
+
+    By default it runs detached in the background (so Ctrl+C / closing the
+    terminal does not stop it). Pass ``--foreground`` to keep it attached.
+    """
     pid = _read_pid()
     if pid and _is_process_running(pid):
         logger.error("Server is already running (PID: %d)", pid)
         sys.exit(1)
 
-    logger.info("Starting RepoPress server...")
-
-    # Import and run uvicorn in the same process
     import uvicorn
 
     from config import settings
 
-    # Write current PID
-    _write_pid(os.getpid())
+    if getattr(args, "foreground", False):
+        logger.info("Starting RepoPress server in the foreground (PID: %d)...", os.getpid())
+        _write_pid(os.getpid())
+        try:
+            uvicorn.run(
+                "main:app",
+                host=settings.host,
+                port=settings.port,
+                reload=settings.debug,
+                log_level="info",
+            )
+        except KeyboardInterrupt:
+            logger.info("Server stopped by user")
+        finally:
+            _remove_pid()
+        return
 
+    import subprocess
+
+    _ensure_pid_dir()
+    server_dir = os.path.dirname(os.path.abspath(__file__))
+    log_path = os.path.join(server_dir, PID_DIR, "server.log")
+
+    log_file = open(log_path, "ab")
     try:
-        uvicorn.run(
-            "main:app",
-            host=settings.host,
-            port=settings.port,
-            reload=settings.debug,
-            log_level="info",
+        proc = subprocess.Popen(
+            [
+                sys.executable, "-m", "uvicorn", "main:app",
+                "--host", settings.host,
+                "--port", str(settings.port),
+                "--log-level", "info",
+            ],
+            cwd=server_dir,
+            stdin=subprocess.DEVNULL,
+            stdout=log_file,
+            stderr=log_file,
+            start_new_session=True,
         )
-    except KeyboardInterrupt:
-        logger.info("Server stopped by user")
     finally:
-        _remove_pid()
+        log_file.close()
+
+    _write_pid(proc.pid)
+    logger.info("RepoPress server started in the background (PID: %d)", proc.pid)
+    logger.info("Logs: %s", log_path)
+    logger.info("Stop it with: python -m cli stop")
 
 
 def cmd_stop(args: argparse.Namespace):
@@ -213,7 +244,12 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # start
-    subparsers.add_parser("start", help="Start the RepoPress server")
+    start_parser = subparsers.add_parser("start", help="Start the RepoPress server")
+    start_parser.add_argument(
+        "-f", "--foreground",
+        action="store_true",
+        help="Run in the foreground instead of detaching to the background",
+    )
 
     # stop
     subparsers.add_parser("stop", help="Stop the RepoPress server")
