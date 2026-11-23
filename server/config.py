@@ -23,7 +23,7 @@ def _resolve_jwt_secret() -> str:
 
 class Settings(BaseSettings):
     host: str = "0.0.0.0"
-    port: int = 8099
+    port: int = 8000
     debug: bool = False
     database_url: str = "sqlite://data/repopress.db"
     auth_mode: str = "authenticated"  # "open" | "authenticated"

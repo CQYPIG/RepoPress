@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '/home/nginx/html/repopress',
+    outDir: '../server/static',
     emptyOutDir: true,
   },
   server: {
