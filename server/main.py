@@ -1,12 +1,11 @@
 from __future__ import annotations
+
 import logging
 import os
-import sys
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from tortoise import Tortoise
 
 from config import settings
@@ -55,7 +54,7 @@ async def _create_default_roles():
 async def _create_default_superuser():
     """Create a default superuser if no users exist."""
     from models import User
-    from services import create_user, get_password_hash
+    from services import create_user
     from schemas import UserCreate
 
     user_count = await User.all().count()
@@ -121,6 +120,7 @@ def create_app() -> FastAPI:
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     if os.path.isdir(static_dir):
         app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+
         # SPA fallback — serve index.html for all non-API routes
         @app.get("/{full_path:path}")
         async def spa_fallback(full_path: str):
@@ -133,7 +133,6 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
 
 if __name__ == "__main__":
     import uvicorn
