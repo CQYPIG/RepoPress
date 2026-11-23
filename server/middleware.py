@@ -1,10 +1,10 @@
 from __future__ import annotations
-import time
-import logging
-from collections import defaultdict
-from datetime import datetime
 
-from fastapi import FastAPI, Request, HTTPException
+from collections import defaultdict
+
+import logging
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
@@ -34,6 +34,7 @@ def _is_rate_limited(ip: str) -> bool:
 async def _verify_jwt(request: Request) -> dict | None:
     """Verify JWT token from Authorization header. Returns payload dict or None."""
     auth_header = request.headers.get("Authorization", "")
+    print(f"Authorization header: {auth_header}")
     if not auth_header.startswith("Bearer "):
         return None
     token = auth_header[7:]
@@ -43,6 +44,7 @@ async def _verify_jwt(request: Request) -> dict | None:
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
         )
+        print(f"payload: {payload}")
         return payload
     except JWTError:
         return None
