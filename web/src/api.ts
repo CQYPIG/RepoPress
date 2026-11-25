@@ -16,7 +16,9 @@ const $fetch = createFetch({
       if (response.status === 401) {
         const auth = useAuthStore()
         auth.logout()
-        window.location.href = '/login'
+        const current = window.location.pathname + window.location.search
+        const redirect = current.startsWith('/login') ? '' : `?redirect=${encodeURIComponent(current)}`
+        window.location.href = `/login${redirect}`
       }
     },
   },

@@ -71,22 +71,34 @@ watch([() => editorStore.currentFile, () => ui.previewVisible], async () => {
 
 const EDITOR_CACHE_KEY = 'repopress_editor_state'
 
-onMounted(async () => {
-  await repo.fetchRepos()
-  let repoId = route.params.repoId as string
-  if (repoId && repo.repos.length > 0) {
+async function ensureRepo(repoId?: string) {
+  if (repo.repos.length === 0) await repo.fetchRepos()
+  if (repoId && repo.repos.some(r => r.id === repoId)) {
     repo.setCurrentRepo(repoId)
     await repo.fetchTree()
-  } else if (repo.repos.length > 0) {
+  } else if (!repo.currentRepoId && repo.repos.length > 0) {
     repo.setCurrentRepo(repo.repos[0].id)
     await repo.fetchTree()
   }
+}
 
-  // Restore last opened file from localStorage
+async function openRouteFile(path?: string) {
+  if (!path || !repo.currentRepoId) return
+  try {
+    await fetchAndOpen(path)
+  } catch (e: any) {
+    message.error(e?.data?.detail || `无法打开文件：${path}`)
+  }
+}
+
+onMounted(async () => {
+  await ensureRepo(route.params.repoId as string | undefined)
+
   const filePath = route.params.path as string | undefined
-  if (filePath && repo.currentRepoId) {
-    await fetchAndOpen(filePath)
+  if (filePath) {
+    await openRouteFile(filePath)
   } else {
+    // Restore last opened file from localStorage
     try {
       const saved = JSON.parse(localStorage.getItem(EDITOR_CACHE_KEY) || '{}')
       if (saved.currentFile && saved.content !== undefined) {
@@ -98,6 +110,23 @@ onMounted(async () => {
   await nextTick()
   applyDefaultWidths()
 })
+
+// Open the file referenced by the URL whenever it changes, so arriving from
+// another page (or a reused editor window/tab) loads the requested file.
+watch(
+  () => [
+    route.params.repoId as string | undefined,
+    route.params.path as string | undefined,
+  ],
+  async ([repoId, path], [prevRepoId, prevPath]) => {
+    if (repoId !== prevRepoId) {
+      await ensureRepo(repoId)
+    }
+    if (path && path !== prevPath) {
+      await openRouteFile(path)
+    }
+  },
+)
 
 watch(() => editorStore.content, (val) => {
   if (val !== undefined) {

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores.js'
 
+const route = useRoute()
 const auth = useAuthStore()
 
 const username = ref('')
@@ -9,13 +11,21 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
+function sanitizeRedirect(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined
+  // Only allow same-origin absolute paths to avoid open redirects.
+  if (!raw.startsWith('/') || raw.startsWith('//')) return undefined
+  return raw
+}
+
 async function handleLogin() {
   if (!username.value || !password.value) return
   loading.value = true
   error.value = ''
   try {
     await auth.login(username.value, password.value)
-    window.location.replace((auth.isEditor || auth.isAdmin) ? '/editor' : '/view')
+    const redirect = sanitizeRedirect(route.query.redirect)
+    window.location.replace(redirect || ((auth.isEditor || auth.isAdmin) ? '/editor' : '/view'))
   } catch (e: any) {
     error.value = e?.data?.detail || e?.message || 'Login failed'
   } finally {

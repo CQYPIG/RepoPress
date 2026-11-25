@@ -57,19 +57,18 @@ router.beforeEach(async (to, _from, next) => {
 
   if (to.meta.auth) {
     if (!authStore.token) {
-      return next('/login')
+      return next({ path: '/login', query: { redirect: to.fullPath } })
     }
     if (!authStore.user) {
       try {
         await authStore.fetchUser()
       } catch {
         authStore.logout()
-        return next('/login')
+        return next({ path: '/login', query: { redirect: to.fullPath } })
       }
     }
     if (to.meta.editor && !(authStore.isEditor || authStore.isAdmin)) {
-      window.location.replace('/view')
-      return next(false)
+      return next(to.fullPath.replace(/^\/editor/, '/view'))
     }
     if (to.meta.admin && !authStore.isAdmin) {
       window.location.replace(authStore.isEditor ? '/editor' : '/view')
